@@ -21,7 +21,7 @@ class sfPearRestTest extends sfPearRest
   /**
    * @see PEAR_REST::downloadHttp()
    */
-  public function downloadHttp($url, $lastmodified = null, $accept = false)
+  public function downloadHttp($url, $lastmodified = null, $accept = false, $channel = false)
   {
     try
     {

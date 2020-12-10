@@ -65,7 +65,9 @@ class sfTesterDoctrine extends sfTester
         }
 
         $operator = '=';
-        if ('!' == $condition[0])
+        if (is_bool($condition)) {
+          //skip
+        } else if ('!' == $condition[0])
         {
           $operator = false !== strpos($condition, '%') ? 'NOT LIKE' : '!=';
           $condition = substr($condition, 1);
