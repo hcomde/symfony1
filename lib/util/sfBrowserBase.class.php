@@ -353,7 +353,7 @@ abstract class sfBrowserBase
     // for HTML/XML content, create a DOM and sfDomCssSelector objects for the response content
     $this->dom = null;
     $this->domCssSelector = null;
-    if (preg_match('/(x|ht)ml/i', $response->getContentType(), $matches))
+    if (preg_match('/(x|ht)ml/i', $response->getContentType(), $matches) && $response->getContent())
     {
       $this->dom = new DomDocument('1.0', $response->getCharset());
       $this->dom->validateOnParse = true;

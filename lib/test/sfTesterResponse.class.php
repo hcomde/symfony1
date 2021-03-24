@@ -39,7 +39,7 @@ class sfTesterResponse extends sfTester
 
     $this->dom = null;
     $this->domCssSelector = null;
-    if (preg_match('/(x|ht)ml/i', $this->response->getContentType(), $matches))
+    if (preg_match('/(x|ht)ml/i', $this->response->getContentType(), $matches) && $this->response->getContent())
     {
       $this->dom = new DOMDocument('1.0', $this->response->getCharset());
       $this->dom->validateOnParse = true;
