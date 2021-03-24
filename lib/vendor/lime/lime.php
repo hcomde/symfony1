@@ -941,6 +941,10 @@ class lime_harness extends lime_registration
 
       $relative_file = $this->get_relative_file($file);
 
+      if(!is_dir($this->options['test_path'])) {
+        mkdir($this->options['test_path']);
+      }
+
       $test_file = tempnam($this->options['test_path'], 'lime_test').'.php';
       $result_file = tempnam($this->options['test_path'], 'lime_result');
       file_put_contents($test_file, <<<EOF
