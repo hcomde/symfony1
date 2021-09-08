@@ -1,0 +1,2 @@
+date string: !str 2001-08-01
+number string: !str 192

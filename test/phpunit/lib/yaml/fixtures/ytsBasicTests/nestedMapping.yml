@@ -1,0 +1,5 @@
+foo: whatever
+bar:
+  fruit: apple
+  name: steve
+  sport: baseball

@@ -1,0 +1,20 @@
+clipped: >
+  This has one newline.
+
+
+
+same as "clipped" above: "This has one newline.\n"
+
+stripped: >-
+  This has no newline.
+
+
+
+same as "stripped" above: "This has no newline."
+
+kept: >+
+  This has four newlines.
+
+
+
+same as "kept" above: "This has four newlines.\n\n\n\n"
