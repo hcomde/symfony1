@@ -476,7 +476,7 @@ class sfYamlParser
       {
         if (' ' == $separator && $previousIndent != $matches['indent'])
         {
-          $text = substr($text, 0, -1)."\n";
+          $text = substr($text, 0, -1).$separator;
         }
         $previousIndent = $matches['indent'];
 
