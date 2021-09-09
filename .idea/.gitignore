@@ -6,3 +6,6 @@
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
+
+php-docker-settings.xml
+php-test-framework.xml
