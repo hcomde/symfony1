@@ -520,11 +520,11 @@ class lime_test
   {
     $this->output->error($message, $file, $line, $traces);
 
-  	$this->results['stats']['errors'][] = array(
-  	  'message' => $message,
-  	  'file' => $file,
-  	  'line' => $line,
-  	);
+    $this->results['stats']['errors'][] = array(
+      'message' => $message,
+      'file' => $file,
+      'line' => $line,
+    );
   }
 
   protected function update_stats()
@@ -553,7 +553,8 @@ class lime_test
     $t = array_reverse($traces);
     foreach ($t as $trace)
     {
-      if (isset($trace['object']) && $this->is_test_object($trace['object']))
+      // In internal calls, like error_handle, 'file' will be missing
+      if (isset($trace['object']) && $this->is_test_object($trace['object']) && isset($trace['file']))
       {
         return array($trace['file'], $trace['line']);
       }
@@ -588,10 +589,7 @@ class lime_test
   }
 
   /**
-   * Handles exception.
-   *
-   * @param Exception|Throwable $exception
-   *
+   * @param Throwable|Exception $exception
    * @return bool
    */
   public function handle_exception($exception)
@@ -941,10 +939,6 @@ class lime_harness extends lime_registration
 
       $relative_file = $this->get_relative_file($file);
 
-      if(!is_dir($this->options['test_path'])) {
-        mkdir($this->options['test_path']);
-      }
-
       $test_file = tempnam($this->options['test_path'], 'lime_test').'.php';
       $result_file = tempnam($this->options['test_path'], 'lime_result');
       file_put_contents($test_file, <<<EOF
@@ -1109,7 +1103,10 @@ EOF
 
             $this->output->comment(sprintf('  at %s line %s', $this->get_relative_file($testsuite['tests'][$testcase]['file']).$this->extension, $testsuite['tests'][$testcase]['line']));
             $this->output->info('  '.$testsuite['tests'][$testcase]['message']);
-            $this->output->echoln($testsuite['tests'][$testcase]['error'], null, false);
+            if (isset($testsuite['tests'][$testcase]['error']))
+            {
+              $this->output->echoln($testsuite['tests'][$testcase]['error'], null, false);
+            }
           }
         }
       }

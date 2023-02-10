@@ -97,9 +97,9 @@ class sfYamlInline
         return 'true';
       case false === $value:
         return 'false';
-      case ctype_digit($value):
+      case (is_string($value) && ctype_digit($value)):
         return is_string($value) ? "'$value'" : (int) $value;
-      case is_numeric($value):
+      case is_numeric($value) && false === strpbrk($value, "\f\n\r\t\v"):
         return is_infinite($value) ? str_ireplace('INF', '.Inf', (string) $value) : (is_string($value) ? "'$value'" : $value);
       case false !== strpos($value, "\n") || false !== strpos($value, "\r"):
         return sprintf('"%s"', str_replace(array('"', "\n", "\r"), array('\\"', '\n', '\r'), $value));
@@ -168,7 +168,7 @@ class sfYamlInline
    */
   static public function parseScalar($scalar, $delimiters = null, $stringDelimiters = array('"', "'"), &$i = 0, $evaluate = true)
   {
-    if (in_array($scalar[$i], $stringDelimiters))
+    if (is_string($scalar) && in_array($scalar[$i], $stringDelimiters))
     {
       // quoted scalar
       $output = self::parseQuotedScalar($scalar, $i);
@@ -272,7 +272,7 @@ class sfYamlInline
           $isQuoted = in_array($sequence[$i], array('"', "'"));
           $value = self::parseScalar($sequence, array(',', ']'), array('"', "'"), $i);
 
-          if (!$isQuoted && false !== strpos($value, ': '))
+          if (!$isQuoted && false !== strpos((string) $value, ': '))
           {
             // embedded mapping?
             try
