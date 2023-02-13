@@ -3,6 +3,8 @@ set -e
 
 SCRIPT_DIR=$(dirname "$(readlink -e "$0")")
 
+./installComposer.sh
+
 echo "[Symfony tests] Check configuration"
 docker run -it --rm --name symfony1 \
   -v "${SCRIPT_DIR}/../:/usr/src/symfony1" \
