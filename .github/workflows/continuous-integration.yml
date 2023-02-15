@@ -4,6 +4,7 @@ on:
     push:
       branches:
         - master
+        - master_fos1_php81
     pull_request:
 
 env:
