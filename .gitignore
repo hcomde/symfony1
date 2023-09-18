@@ -1,3 +1,7 @@
+# Ignore IDE settings (public github repository!)
+/.idea
+
+# Symfony1 ignored files
 /test/functional/fixtures/cache
 /test/functional/fixtures/log
 /lib/plugins/sfDoctrinePlugin/test/functional/fixtures/lib/*/doctrine/base/
