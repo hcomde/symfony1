@@ -8,7 +8,8 @@
         "swiftmailer/swiftmailer": "~5.2 || ^6.0"
     },
     "require-dev": {
-        "psr/log": "*"
+        "psr/log": "*",
+        "phpunit/phpunit": "^9.5"
     },
     "autoload": {
         "files": ["autoload.php"]
