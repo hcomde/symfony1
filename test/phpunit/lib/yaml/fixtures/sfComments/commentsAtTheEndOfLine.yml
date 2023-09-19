@@ -1,0 +1,4 @@
+ex1: "foo # bar"
+ex2: "foo # bar" # comment
+ex3: 'foo # bar' # comment
+ex4: foo # comment

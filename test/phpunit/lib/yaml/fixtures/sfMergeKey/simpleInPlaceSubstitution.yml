@@ -1,0 +1,17 @@
+foo: &foo
+  a: Steve
+  b: Clark
+  c: Brian
+bar: &bar
+  <<: *foo
+  x: Oren
+foo2: &foo2
+  a: Ballmer
+ding: &dong [ fi, fei, fo, fam]
+check:
+  <<:
+    - *foo
+    - *dong
+  isit: tested
+head:
+  <<: [ *foo , *dong , *foo2 ]

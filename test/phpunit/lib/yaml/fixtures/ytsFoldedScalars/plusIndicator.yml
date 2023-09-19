@@ -1,0 +1,8 @@
+normal: |
+  extra new lines not kept
+
+preserving: |+
+  extra new lines are kept
+
+
+dummy: value
