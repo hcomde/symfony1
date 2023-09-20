@@ -4,6 +4,7 @@ on:
     push:
       branches:
         - master
+        - main
     pull_request:
 
 env:
@@ -47,3 +48,28 @@ jobs:
 
             - name: "Run Tests"
               run: "php data/bin/symfony symfony:test --trace"
+
+    hcom_phpunit_tests:
+        name: "h.com PHPUnit Tests"
+        runs-on: "ubuntu-22.04"
+
+        services:
+            memcached:
+                image: "memcached:1.6"
+
+        steps:
+            - name: "Checkout"
+              uses: "actions/checkout@v3"
+              with:
+                  submodules: "true"
+
+            - name: "Install PHP"
+              uses: "shivammathur/setup-php@v2"
+              with:
+                  php-version: "8.1"
+
+            - name: "Install dependencies with Composer"
+              uses: "ramsey/composer-install@v2"
+
+            - name: "Run PHPUnit Tests"
+              run: "php vendor/bin/phpunit test/phpunit"
