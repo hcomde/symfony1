@@ -1,5 +1,5 @@
 ARG PHP_VERSION
-FROM php:${PHP_VERSION}-cli
+FROM php:${PHP_VERSION}-cli AS symfony1-php
 
 RUN docker-php-ext-install pdo
 RUN docker-php-ext-install pdo_mysql
@@ -66,3 +66,13 @@ RUN set -eux; \
   \
   file /bin/ls --mime | grep application/x-executable; \
   :;
+
+########################################    DEBUG    ###############################################
+
+FROM symfony1-php AS symfony1-debug-php
+
+COPY conf.d/xdebug.ini /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini
+
+ARG XDEBUG_VERSION
+RUN pecl install xdebug-${XDEBUG_VERSION} \
+  && docker-php-ext-enable xdebug

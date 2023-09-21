@@ -10,4 +10,5 @@ docker build \
   --build-arg="PHP_VERSION=${PHP_VERSION}" \
   --build-arg="APCU_VERSION=${APCU_VERSION}" \
   --build-arg="MEMCACHE_VERSION=${MEMCACHE_VERSION}" \
+  --build-arg="XDEBUG_VERSION=${XDEBUG_VERSION}" \
   "${SCRIPT_DIR}/../.docker/${DOCKERFILE}"

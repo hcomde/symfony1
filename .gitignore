@@ -1,5 +1,6 @@
 # Ignore IDE settings (public github repository!)
 /.idea
+/.phpunit.cache
 
 # Symfony1 ignored files
 /test/functional/fixtures/cache
