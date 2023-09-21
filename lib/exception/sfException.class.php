@@ -85,7 +85,7 @@ class sfException extends Exception
 
         if (!sfConfig::get('sf_test')) {
             // log all exceptions in php log
-            error_log($exception->getMessage());
+            error_log(self::createLogMessage($exception));
 
             // clean current output buffer
             while (ob_get_level()) {
@@ -164,7 +164,7 @@ class sfException extends Exception
 
             if (sfConfig::get('sf_logging_enabled')) {
                 $priority = $exception instanceof sfError404Exception ? sfLogger::ERR : sfLogger::CRIT;
-                $dispatcher->notify(new sfEvent($exception, 'application.log', array($exception->getMessage(), 'priority' => $priority)));
+                $dispatcher->notify(new sfEvent($exception, 'application.log', array(self::createLogMessage($exception), 'priority' => $priority)));
             }
 
             $event = $dispatcher->notifyUntil(new sfEvent($exception, 'application.throw_exception'));
@@ -414,5 +414,33 @@ class sfException extends Exception
         }
 
         return htmlspecialchars($value, ENT_QUOTES, sfConfig::get('sf_charset', 'UTF-8'));
+    }
+
+    public function getDecoratedMessage(): string {
+        return $this->getMessage();
+    }
+
+    public function __toString(): string {
+        return self::createLogMessage($this);
+    }
+
+    public static function createLogMessage(Throwable $e): string {
+        $messages = [self::generateErrorMessage($e)];
+
+        $chainException = $e;
+        while ($chainException->getPrevious()) {
+            $chainException = $chainException->getPrevious();
+            $messages[] = self::generateErrorMessage($chainException);
+        }
+        return implode(PHP_EOL . ' || Previous: ', $messages);
+    }
+
+    private static function generateErrorMessage(Throwable $exception): string {
+        $className = (new ReflectionClass($exception))->getShortName();
+        $code = $exception->getCode() ?? 0;
+        $file = $exception->getFile();
+        $line = $exception->getLine();
+        $message = $exception instanceof sfException ? $exception->getDecoratedMessage() : $exception->getMessage();
+        return "$className [$code]: $message in $file:$line";
     }
 }
