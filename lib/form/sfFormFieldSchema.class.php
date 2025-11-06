@@ -12,25 +12,23 @@
  * sfFormFieldSchema represents an array of widgets bind to names and values.
  *
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * @version    SVN: $Id$
  */
 class sfFormFieldSchema extends sfFormField implements ArrayAccess, Iterator, Countable
 {
     protected $count = 0;
-    protected $fieldNames = array();
-    protected $fields = array();
+    protected $fieldNames = [];
+    protected $fields = [];
 
     /**
      * Constructor.
      *
-     * @param sfWidgetFormSchema $widget A sfWidget instance
-     * @param sfFormField        $parent The sfFormField parent instance (null for the root widget)
-     * @param string             $name   The field name
-     * @param string             $value  The field value
-     * @param sfValidatorError   $error  A sfValidatorError instance
+     * @param sfWidgetFormSchema    $widget A sfWidget instance
+     * @param sfFormField|null      $parent The sfFormField parent instance (null for the root widget)
+     * @param string                $name   The field name
+     * @param mixed                 $value  The field value
+     * @param sfValidatorError|null $error  A sfValidatorError instance
      */
-    public function __construct(sfWidgetFormSchema $widget, sfFormField $parent = null, $name, $value, sfValidatorError $error = null)
+    public function __construct(sfWidgetFormSchema $widget, ?sfFormField $parent = null, $name = '', $value = null, ?sfValidatorError $error = null)
     {
         parent::__construct($widget, $parent, $name, $value, $error);
 
@@ -64,7 +62,7 @@ class sfFormFieldSchema extends sfFormField implements ArrayAccess, Iterator, Co
      */
     public function getHiddenFields($recursive = true)
     {
-        $fields = array();
+        $fields = [];
 
         foreach ($this as $name => $field) {
             if ($field instanceof sfFormFieldSchema && $recursive) {

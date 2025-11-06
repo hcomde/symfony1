@@ -12,8 +12,6 @@
  * sfWebDebugLogger logs messages into the web debug toolbar.
  *
  * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * @version    SVN: $Id$
  */
 class sfWebDebugLogger extends sfVarLogger
 {
@@ -38,15 +36,15 @@ class sfWebDebugLogger extends sfVarLogger
      *
      * @see sfVarLogger
      */
-    public function initialize(sfEventDispatcher $dispatcher, $options = array())
+    public function initialize(sfEventDispatcher $dispatcher, $options = [])
     {
         $this->context = sfContext::getInstance();
 
         $this->webDebugClass = isset($options['web_debug_class']) ? $options['web_debug_class'] : 'sfWebDebug';
 
         if (sfConfig::get('sf_web_debug')) {
-            $dispatcher->connect('context.load_factories', array($this, 'listenForLoadFactories'));
-            $dispatcher->connect('response.filter_content', array($this, 'filterResponseContent'));
+            $dispatcher->connect('context.load_factories', [$this, 'listenForLoadFactories']);
+            $dispatcher->connect('response.filter_content', [$this, 'filterResponseContent']);
         }
 
         $this->registerErrorHandler();
@@ -58,8 +56,7 @@ class sfWebDebugLogger extends sfVarLogger
      * PHP error handler send PHP errors to log.
      *
      * PHP user space error handler can not handle E_ERROR, E_PARSE,
-     * E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR, E_COMPILE_WARNING,
-     * and most of E_STRICT.
+     * E_CORE_ERROR, E_CORE_WARNING, E_COMPILE_ERROR and E_COMPILE_WARNING.
      *
      * @param string $errno      the level of the error raised, as an integer
      * @param string $errstr     the error message, as a string
@@ -69,7 +66,7 @@ class sfWebDebugLogger extends sfVarLogger
      *
      * @return bool
      */
-    public function handlePhpError($errno, $errstr, $errfile, $errline, $errcontext = array())
+    public function handlePhpError($errno, $errstr, $errfile, $errline, $errcontext = [])
     {
         if (($errno & error_reporting()) == 0) {
             return false;
@@ -78,23 +75,18 @@ class sfWebDebugLogger extends sfVarLogger
         $message = sprintf(' %%s at %s on line %s (%s)', $errfile, $errline, str_replace('%', '%%', $errstr));
 
         switch ($errno) {
-            case E_STRICT:
-                $this->dispatcher->notify(new sfEvent($this, 'application.log', array('priority' => sfLogger::ERR, sprintf($message, 'Strict notice'))));
-
-                break;
-
             case E_NOTICE:
-                $this->dispatcher->notify(new sfEvent($this, 'application.log', array('priority' => sfLogger::NOTICE, sprintf($message, 'Notice'))));
+                $this->dispatcher->notify(new sfEvent($this, 'application.log', ['priority' => sfLogger::NOTICE, sprintf($message, 'Notice')]));
 
                 break;
 
             case E_WARNING:
-                $this->dispatcher->notify(new sfEvent($this, 'application.log', array('priority' => sfLogger::WARNING, sprintf($message, 'Warning'))));
+                $this->dispatcher->notify(new sfEvent($this, 'application.log', ['priority' => sfLogger::WARNING, sprintf($message, 'Warning')]));
 
                 break;
 
             case E_RECOVERABLE_ERROR:
-                $this->dispatcher->notify(new sfEvent($this, 'application.log', array('priority' => sfLogger::ERR, sprintf($message, 'Error'))));
+                $this->dispatcher->notify(new sfEvent($this, 'application.log', ['priority' => sfLogger::ERR, sprintf($message, 'Error')]));
 
                 break;
         }
@@ -110,10 +102,10 @@ class sfWebDebugLogger extends sfVarLogger
         $path = sprintf('%s/%s/images', $event->getSubject()->getRequest()->getRelativeUrlRoot(), sfConfig::get('sf_web_debug_web_dir'));
         $path = str_replace('//', '/', $path);
 
-        $this->webDebug = new $this->webDebugClass($this->dispatcher, $this, array(
+        $this->webDebug = new $this->webDebugClass($this->dispatcher, $this, [
             'image_root_path' => $path,
             'request_parameters' => $event->getSubject()->getRequest()->getParameterHolder()->getAll(),
-        ));
+        ]);
     }
 
     /**
@@ -131,7 +123,7 @@ class sfWebDebugLogger extends sfVarLogger
         }
 
         // log timers information
-        $messages = array();
+        $messages = [];
         foreach (sfTimerManager::getTimers() as $name => $timer) {
             $messages[] = sprintf('%s %.2f ms (%d)', $name, $timer->getElapsedTime() * 1000, $timer->getCalls());
         }
@@ -168,6 +160,6 @@ class sfWebDebugLogger extends sfVarLogger
      */
     protected function registerErrorHandler()
     {
-        set_error_handler(array($this, 'handlePhpError'));
+        set_error_handler([$this, 'handlePhpError']);
     }
 }

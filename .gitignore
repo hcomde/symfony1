@@ -2,8 +2,11 @@
 /.idea
 /.phpunit.cache
 .phpunit.result.cache
+.php-cs-fixer.cache
 
 # Symfony1 ignored files
+.cache/
+
 /test/functional/fixtures/cache
 /test/functional/fixtures/log
 /lib/plugins/sfDoctrinePlugin/test/functional/fixtures/lib/*/doctrine/base/
@@ -12,4 +15,3 @@
 lib/plugins/sfDoctrinePlugin/test/functional/fixtures/log/
 /vendor
 /composer.lock
-.php-cs-fixer.cache
