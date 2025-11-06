@@ -7,4 +7,4 @@ source "${SCRIPT_DIR}/projectVars.sh"
 # Running composer install
 docker run -it --rm --tty --name symfony1_composer \
   -v "${SCRIPT_DIR}/../:/app" \
-  composer:2.2 "${@}"
+  composer:${COMPOSER_TAG} "${@}"
