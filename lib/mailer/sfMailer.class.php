@@ -1,53 +1,29 @@
 <?php
 
-/*
- * This file is part of the symfony package.
- * (c) Fabien Potencier <fabien.potencier@symfony-project.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
+use Symfony\Component\Mailer\Mailer;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Transport;
+use Symfony\Component\Mailer\Transport\NullTransport;
+use Symfony\Component\Mime\Email;
+
 
 /**
- * sfMailer is the main entry point for the mailer system.
+ * Mailer based on Symfony 7's mailer component.
  *
- * This class is instanciated by sfContext on demand.
- *
- * @author     Fabien Potencier <fabien.potencier@symfony-project.com>
+ * @author h.com networkers
  */
-class sfMailer extends Swift_Mailer
+class sfMailer
 {
     public const REALTIME = 'realtime';
-    public const SPOOL = 'spool';
-    public const SINGLE_ADDRESS = 'single_address';
     public const NONE = 'none';
 
-    protected $spool;
-    protected $logger;
-    protected $strategy = 'realtime';
-    protected $address = '';
-    protected $realtimeTransport;
-    protected $force = false;
-    protected $redirectingPlugin;
+    protected string $strategy = 'realtime';
+    protected string $address = '';
+    protected bool $force = false;
 
-    /**
-     * Constructor.
-     *
-     * Available options:
-     *
-     *  * charset: The default charset to use for messages
-     *  * logging: Whether to enable logging or not
-     *  * delivery_strategy: The delivery strategy to use
-     *  * spool_class: The spool class (for the spool strategy)
-     *  * spool_arguments: The arguments to pass to the spool constructor
-     *  * delivery_address: The email address to use for the single_address strategy
-     *  * transport: The main transport configuration
-     *  *   * class: The main transport class
-     *  *   * param: The main transport parameters
-     *
-     * @param sfEventDispatcher $dispatcher An event dispatcher instance
-     * @param array             $options    An array of options
-     */
+    private ?MailerInterface $mailer = null;
+    private string $charset = 'UTF-8';
+
     public function __construct(sfEventDispatcher $dispatcher, $options)
     {
         // options
@@ -55,246 +31,84 @@ class sfMailer extends Swift_Mailer
             'charset' => 'UTF-8',
             'logging' => false,
             'delivery_strategy' => self::REALTIME,
-            'transport' => [
-                'class' => 'Swift_MailTransport',
-                'param' => [],
-            ],
+            'dsn' => 'smtp://null:null@example.com:25',
         ], $options);
 
-        $constantName = 'sfMailer::'.strtoupper($options['delivery_strategy']);
+        $constantName = 'sfMailer::' . strtoupper($options['delivery_strategy']);
         $this->strategy = defined($constantName) ? constant($constantName) : false;
         if (!$this->strategy) {
-            throw new InvalidArgumentException(sprintf('Unknown mail delivery strategy "%s" (should be one of realtime, spool, single_address, or none)', $options['delivery_strategy']));
+            throw new InvalidArgumentException(sprintf('Unknown mail delivery strategy "%s" (should be one of realtime or none)', $options['delivery_strategy']));
         }
 
-        if (sfMailer::NONE == $this->strategy) {
-            $options['transport']['class'] = 'Swift_NullTransport';
+        $this->charset = $options['charset'];
+        $dsn = $options['dsn'];
+        if($dsn) {
+            $transport = Transport::fromDsn($dsn);
+        } else {
+            $transport = new NullTransport();
         }
-
-        // transport
-        $class = $options['transport']['class'];
-        $transport = new $class();
-        if (isset($options['transport']['param'])) {
-            foreach ($options['transport']['param'] as $key => $value) {
-                $method = 'set'.ucfirst($key);
-                if (method_exists($transport, $method)) {
-                    $transport->{$method}($value);
-                } elseif (method_exists($transport, 'getExtensionHandlers')) {
-                    foreach ($transport->getExtensionHandlers() as $handler) {
-                        if (in_array(strtolower($method), array_map('strtolower', (array) $handler->exposeMixinMethods()))) {
-                            $transport->{$method}($value);
-                        }
-                    }
-                }
-            }
-        }
-        $this->realtimeTransport = $transport;
-
-        if (sfMailer::SPOOL == $this->strategy) {
-            if (!isset($options['spool_class'])) {
-                throw new InvalidArgumentException('For the spool mail delivery strategy, you must also define a spool_class option');
-            }
-            $arguments = isset($options['spool_arguments']) ? $options['spool_arguments'] : [];
-
-            if ($arguments) {
-                $r = new ReflectionClass($options['spool_class']);
-                $this->spool = $r->newInstanceArgs($arguments);
-            } else {
-                $this->spool = new $options['spool_class']();
-            }
-
-            $transport = new Swift_SpoolTransport($this->spool);
-        } elseif (sfMailer::SINGLE_ADDRESS == $this->strategy) {
-            if (!isset($options['delivery_address'])) {
-                throw new InvalidArgumentException('For the single_address mail delivery strategy, you must also define a delivery_address option');
-            }
-
-            $this->address = $options['delivery_address'];
-
-            $transport->registerPlugin($this->redirectingPlugin = new Swift_Plugins_RedirectingPlugin($this->address));
-        }
-
-        parent::__construct($transport);
-
-        // logger
-        if ($options['logging']) {
-            $this->logger = new sfMailerMessageLoggerPlugin($dispatcher);
-
-            $transport->registerPlugin($this->logger);
-        }
-
-        // preferences
-        Swift_Preferences::getInstance()->setCharset($options['charset']);
+        $this->mailer = new Mailer($transport);
 
         $dispatcher->notify(new sfEvent($this, 'mailer.configure'));
     }
 
-    /**
-     * Gets the realtime transport instance.
-     *
-     * @return Swift_Transport the realtime transport instance
-     */
     public function getRealtimeTransport()
     {
-        return $this->realtimeTransport;
+        return null;
     }
 
-    /**
-     * Sets the realtime transport instance.
-     *
-     * @param Swift_Transport $transport the realtime transport instance
-     */
-    public function setRealtimeTransport(Swift_Transport $transport)
+    public function setRealtimeTransport($transport)
     {
-        $this->realtimeTransport = $transport;
     }
 
-    /**
-     * Gets the logger instance.
-     *
-     * @return sfMailerMessageLoggerPlugin the logger instance
-     */
-    public function getLogger()
-    {
-        return $this->logger;
-    }
-
-    /**
-     * Sets the logger instance.
-     *
-     * @param sfMailerMessageLoggerPlugin $logger the logger instance
-     */
-    public function setLogger($logger)
-    {
-        $this->logger = $logger;
-    }
-
-    /**
-     * Gets the delivery strategy.
-     *
-     * @return string The delivery strategy
-     */
-    public function getDeliveryStrategy()
+    public function getDeliveryStrategy(): string
     {
         return $this->strategy;
     }
 
-    /**
-     * Gets the delivery address.
-     *
-     * @return string The delivery address
-     */
     public function getDeliveryAddress()
     {
-        return $this->address;
+        return null;
     }
 
-    /**
-     * Sets the delivery address.
-     *
-     * @param string $address The delivery address
-     */
     public function setDeliveryAddress($address)
     {
-        $this->address = $address;
-
-        if (sfMailer::SINGLE_ADDRESS == $this->strategy) {
-            $this->redirectingPlugin->setRecipient($address);
-        }
     }
 
-    /**
-     * Creates a new message.
-     *
-     * @param array|string $from    The from address
-     * @param array|string $to      The recipient(s)
-     * @param string       $subject The subject
-     * @param string       $body    The body
-     *
-     * @return Swift_Message A Swift_Message instance
-     */
-    public function compose($from = null, $to = null, $subject = null, $body = null)
+    public function compose(?string $from = null, ?string $to = null, ?string $subject = null, ?string $body = null): Email
     {
-        $msg = new Swift_Message();
-
-        return $msg
-            ->setFrom($from)
-            ->setTo($to)
-            ->setSubject($subject)
-            ->setBody($body)
-        ;
+        return new Email()
+            ->from($from)
+            ->to($to)
+            ->subject($subject)
+            ->text($body, $this->charset);
     }
 
-    /**
-     * Sends a message.
-     *
-     * @param array|string $from    The from address
-     * @param array|string $to      The recipient(s)
-     * @param string       $subject The subject
-     * @param string       $body    The body
-     *
-     * @return int The number of sent emails
-     */
-    public function composeAndSend($from, $to, $subject, $body)
+    public function composeAndSend(string $from, string $to, string $subject, string $body): void
     {
-        return $this->send($this->compose($from, $to, $subject, $body));
+        $this->send($this->compose($from, $to, $subject, $body));
     }
 
-    /**
-     * Forces the next call to send() to use the realtime strategy.
-     *
-     * @return sfMailer The current sfMailer instance
-     */
     public function sendNextImmediately()
     {
-        $this->force = true;
-
-        return $this;
+        return null;
     }
 
-    /**
-     * Sends the given message.
-     *
-     * @param Swift_Mime_Message|Swift_Mime_SimpleMessage $message           the message to send
-     * @param string[]                                    &$failedRecipients An array of failures by-reference
-     *
-     * @return false|int The number of sent emails
-     */
-    public function send($message, &$failedRecipients = null)
+    public function send(Email $email, ?array &$failedRecipients = null): void
     {
-        if ($this->force) {
-            $this->force = false;
-
-            if (!$this->realtimeTransport->isStarted()) {
-                $this->realtimeTransport->start();
-            }
-
-            return $this->realtimeTransport->send($message, $failedRecipients);
+        if ($this->mailer) {
+            $this->mailer->send($email);
         }
-
-        return parent::send($message, $failedRecipients);
     }
 
-    /**
-     * Sends the current messages in the spool.
-     *
-     * The return value is the number of recipients who were accepted for delivery.
-     *
-     * @param string[] &$failedRecipients An array of failures by-reference
-     *
-     * @return int The number of sent emails
-     */
     public function flushQueue(&$failedRecipients = null)
     {
-        return $this->getSpool()->flushQueue($this->realtimeTransport, $failedRecipients);
+        return null;
     }
 
     public function getSpool()
     {
-        if (self::SPOOL != $this->strategy) {
-            throw new LogicException(sprintf('You can only send messages in the spool if the delivery strategy is "spool" (%s is the current strategy).', $this->strategy));
-        }
-
-        return $this->spool;
+        return null;
     }
+
 }

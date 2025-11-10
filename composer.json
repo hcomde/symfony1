@@ -5,8 +5,8 @@
     "license": "MIT",
     "require": {
         "php" : ">=5.3.0",
-        "swiftmailer/swiftmailer": "~5.2 || ^6.0",
-        "friendsofphp/php-cs-fixer": "^3.27"
+        "friendsofphp/php-cs-fixer": "^3.27",
+        "symfony/mailer": "^7.3"
     },
     "require-dev": {
         "psr/log": "*",
