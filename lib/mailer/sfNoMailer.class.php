@@ -14,7 +14,7 @@ class sfNoMailer
         return null;
     }
 
-    public function setRealtimeTransport(Swift_Transport $transport)
+    public function setRealtimeTransport($transport)
     {
     }
 

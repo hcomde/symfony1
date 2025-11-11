@@ -8,6 +8,8 @@
  * file that was distributed with this source code.
  */
 
+use Symfony\Component\Mime\Email;
+
 /**
  * sfWebDebugPanelMailer adds a panel to the web debug toolbar with sent emails.
  *
@@ -57,10 +59,6 @@ class sfWebDebugPanelMailer extends sfWebDebugPanel
         $html[] = '<h2>Configuration</h2>';
         $html[] = '<em>Delivery strategy</em>: '.$strategy;
 
-        if (sfMailer::SINGLE_ADDRESS == $strategy) {
-            $html[] = ' - <em>all emails are delivered to</em>: '.$this->mailer->getDeliveryAddress();
-        }
-
         // email sent
         $html[] = '<h2>Email sent</h2>';
         foreach ($messages as $message) {
@@ -78,7 +76,7 @@ class sfWebDebugPanelMailer extends sfWebDebugPanel
         $this->mailer = $event->getSubject();
     }
 
-    protected function renderMessageInformation(Swift_Message $message)
+    protected function renderMessageInformation(Email $message)
     {
         static $i = 0;
 
@@ -89,7 +87,7 @@ class sfWebDebugPanelMailer extends sfWebDebugPanel
         $html = [];
         $html[] = sprintf('<h3>%s (to: %s) %s</h3>', $message->getSubject(), $to, $this->getToggler('sfWebDebugMailTemplate'.$i));
         $html[] = '<div id="sfWebDebugMailTemplate'.$i.'" style="display:'.(1 == $i ? 'block' : 'none').'">';
-        $html[] = '<pre>'.htmlentities($message->toString(), ENT_QUOTES, $message->getCharset()).'</pre>';
+        $html[] = '<pre>'.htmlentities($message->toString(), ENT_QUOTES, $message->getTextCharset()).'</pre>';
         $html[] = '</div>';
 
         return implode("\n", $html);
