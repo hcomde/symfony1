@@ -23,6 +23,7 @@ class sfMailer
 
     private ?MailerInterface $mailer = null;
     private string $charset = 'UTF-8';
+    private ?sfMailerLogger $logger = null;
 
     public function __construct(sfEventDispatcher $dispatcher, $options)
     {
@@ -42,14 +43,23 @@ class sfMailer
 
         $this->charset = $options['charset'];
         $dsn = $options['dsn'];
-        if($dsn) {
+        if($dsn && $this->strategy === self::REALTIME) {
             $transport = Transport::fromDsn($dsn);
         } else {
             $transport = new NullTransport();
         }
         $this->mailer = new Mailer($transport);
 
+        if($options['logging']) {
+            $this->logger = new sfMailerLogger();
+        }
+
         $dispatcher->notify(new sfEvent($this, 'mailer.configure'));
+    }
+
+    public function getLogger(): ?sfMailerLogger
+    {
+        return $this->logger;
     }
 
     public function getRealtimeTransport()
@@ -75,16 +85,19 @@ class sfMailer
     {
     }
 
-    public function compose(?string $from = null, ?string $to = null, ?string $subject = null, ?string $body = null): Email
+    public function compose(?string $from = null, string|array|null $to = null, ?string $subject = null, ?string $body = null): Email
     {
+        if(! is_array($to)) {
+            $to = [$to];
+        }
         return new Email()
             ->from($from)
-            ->to($to)
+            ->to(...$to)
             ->subject($subject)
             ->text($body, $this->charset);
     }
 
-    public function composeAndSend(string $from, string $to, string $subject, string $body): void
+    public function composeAndSend(string $from, string|array $to, string $subject, string $body): void
     {
         $this->send($this->compose($from, $to, $subject, $body));
     }
@@ -94,10 +107,13 @@ class sfMailer
         return null;
     }
 
-    public function send(Email $email, ?array &$failedRecipients = null): void
+    public function send(Email $email): void
     {
         if ($this->mailer) {
             $this->mailer->send($email);
+            if($this->logger) {
+                $this->logger->log($email);
+            }
         }
     }
 

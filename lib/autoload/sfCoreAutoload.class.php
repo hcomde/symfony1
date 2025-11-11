@@ -189,6 +189,7 @@ class sfCoreAutoload
         'sfwebdebuglogger' => 'log/sfWebDebugLogger.class.php',
         'sfmailer' => 'mailer/sfMailer.class.php',
         'sfnomailer' => 'mailer/sfNoMailer.class.php',
+        'sfmailerlogger' => 'mailer/sfMailerLogger.class.php',
         'sfpearconfig' => 'plugin/sfPearConfig.class.php',
         'sfpeardownloader' => 'plugin/sfPearDownloader.class.php',
         'sfpearenvironment' => 'plugin/sfPearEnvironment.class.php',

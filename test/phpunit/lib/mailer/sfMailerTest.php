@@ -36,12 +36,39 @@ class sfMailerTest extends TestCase
             'delivery_strategy' => 'none',
             'charset' => 'ISO-8859-1',
             'dsn' => null,
+            'logging' => false,
         ]);
 
         $email = $mailer->compose('from@example.com', 'to@example.com', 'Subject', 'Body');
         $this->assertInstanceOf(Email::class, $email);
         $this->assertSame('from@example.com', $email->getFrom()[0]->toString());
         $this->assertSame('to@example.com', $email->getTo()[0]->toString());
+        $this->assertSame('Subject', $email->getSubject());
+        $this->assertSame('Body', $email->getTextBody());
+        $this->assertSame('ISO-8859-1', $email->getTextCharset());
+
+        $this->assertNull($mailer->getLogger());
+    }
+
+    public function testLogSentMails(): void
+    {
+        $mailer = new \sfMailer($this->createDispatcher(), [
+            'delivery_strategy' => 'none',
+            'charset' => 'ISO-8859-1',
+            'dsn' => 'smtp://null:null@example.com:25',
+            'logging' => true,
+        ]);
+
+        $mailer->composeAndSend('from@example.com', ['to1@example.com', 'to2@example.com'], 'Subject', 'Body');
+
+        $logger = $mailer->getLogger();
+        $this->assertSame(1, $logger->countMessages());
+        $email = $logger->getMessages()[0];
+
+        $this->assertInstanceOf(Email::class, $email);
+        $this->assertSame('from@example.com', $email->getFrom()[0]->toString());
+        $this->assertSame('to1@example.com', $email->getTo()[0]->toString());
+        $this->assertSame('to2@example.com', $email->getTo()[1]->toString());
         $this->assertSame('Subject', $email->getSubject());
         $this->assertSame('Body', $email->getTextBody());
         $this->assertSame('ISO-8859-1', $email->getTextCharset());
